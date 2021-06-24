@@ -1,1 +1,1 @@
-# Plate Doctor website application developed by James, Tristin, and Sophia.
+# Plate Doctor website application developed by James, Tristin, and Sophie.
