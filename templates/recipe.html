@@ -1,0 +1,18 @@
+<h1>Recipe Page</h1>
+<br>
+<a href='{{url_for("homepage", username = username)}}'>Click here to return to homepage!</a>
+{% extends "base.html" %}
+
+{% block title %}Recipe! - {{ super() }}{% endblock %}
+
+{% block body %}
+	<h3>List of Recipes:</h3>
+<ul>
+	{% for e in list %}
+	<div style="font-size:18px">
+		<p>{{e}}</p>
+	</div>
+	<br>
+		{% endfor %}
+</ul>
+{% endblock %}

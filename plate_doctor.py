@@ -1,4 +1,4 @@
-import json, time
+import json
 from flask import Flask, request, abort, url_for, redirect, session, render_template, flash
 from models import db, User
 from datetime import datetime
@@ -37,7 +37,20 @@ def homepage(username=None):
     if not username:
         return redirect(url_for("login"))
     else:
-        return render_template("homepage.html")
+        if request.method == "POST":
+            val = request.form["recipe"] 
+            return redirect(url_for("recipes", value = val))
+        else:
+            return render_template("homepage.html")
+
+@app.route("/recipe/<value>", methods =["GET", "POST"])
+def recipes(value=None):
+    if not value:
+        return render_template("homepage.html", username = session["username"])
+    else:
+        r = findRecipe(value)
+        return render_template("recipe.html", list = r)
+
 
 @app.route("/registration/", methods=["GET", "POST"])
 def registration():
@@ -68,14 +81,14 @@ def logout():
     else:
         return redirect(url_for("login"))
 
-# with open("recipes_raw_nosource_epi.json") as f:
-#     data = json.load(f)
-    
-# val = input("Enter a recipe to search for: ")
-# start_time = time.time()
-# for key, value in data.items():
-#     if val.lower() in value['title'].lower():
-#         print(value['title'])
+def findRecipe(val):
+    with open("recipes_raw_nosource_epi.json") as f:
+        data = json.load(f)
+    recipe_list = []
+    for key, value in data.items():
+        if val.lower() in value['title'].lower():
+            recipe_list.append(value['title'])
+    return recipe_list
 
 app.secret_key = "asdf;lkj"
             
