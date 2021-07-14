@@ -10,7 +10,13 @@
 <ul>
 	{% for e in list %}
 	<div style="font-size:18px">
-		<p>{{e}}</p>
+		<p>
+			<form action = "" method ="post">
+                <input type = "hidden" name = "viewRecipe" value = "{{e}}">
+                <button name = "{{e}}" style="background-color:black;color:white;width:400px;
+                height:40px;" >{{e}}</button>
+            </form>
+		</p>
 	</div>
 	<br>
 		{% endfor %}

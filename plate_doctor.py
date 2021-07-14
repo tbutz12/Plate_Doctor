@@ -1,4 +1,4 @@
-import json
+import json, urllib.parse
 from flask import Flask, request, abort, url_for, redirect, session, render_template, flash
 from models import db, User
 from datetime import datetime
@@ -14,6 +14,7 @@ with app.app_context():
     db.create_all()
 
 users = {}
+recipe_list = []
 
 @app.route("/")
 def default():
@@ -48,9 +49,22 @@ def recipes(value=None):
     if not value:
         return render_template("homepage.html", username = session["username"])
     else:
+        if request.method == "POST":
+            recipe_name = request.form["viewRecipe"] 
+            return redirect(url_for("recipe_name", recipe = recipe_name))
         r = findRecipe(value)
         return render_template("recipe.html", list = r)
 
+@app.route("/recipe_name/<recipe>", methods =["GET", "POST"])
+def recipe_name(recipe=None):
+    if not recipe:
+        return render_template("homepage.html", username = session["username"])
+    else:
+        if request.method == "POST":
+            render_template("homepage.html", username = session["username"])
+        recipe_uni = urllib.parse.unquote(recipe)
+        r = showRecipe(recipe_uni)
+        return render_template("recipe_name.html", list = r)
 
 @app.route("/registration/", methods=["GET", "POST"])
 def registration():
@@ -82,13 +96,28 @@ def logout():
         return redirect(url_for("login"))
 
 def findRecipe(val):
+    data = []
     with open("recipes_raw_nosource_epi.json") as f:
         data = json.load(f)
-    recipe_list = []
     for key, value in data.items():
         if val.lower() in value['title'].lower():
             recipe_list.append(value['title'])
     return recipe_list
+
+def showRecipe(recipe):
+    data = []
+    with open("recipes_raw_nosource_epi.json") as f:
+        data = json.load(f)
+    recipe_name_list = []
+    for key, value in data.items():
+        if recipe.lower() in value['title'].lower():
+            recipe_name_list.append("Recipe Name")
+            recipe_name_list.append(value['title'])
+            recipe_name_list.append("Ingredients")
+            recipe_name_list.append(value['ingredients'])
+            recipe_name_list.append("Instructions")
+            recipe_name_list.append(value['instructions'])
+    return recipe_name_list
 
 app.secret_key = "asdf;lkj"
             
