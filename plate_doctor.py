@@ -1,10 +1,12 @@
 import json, urllib.parse
 from flask import Flask, request, abort, url_for, redirect, session, render_template, flash
-from models import db, User
+from sqlalchemy.ext.declarative.api import declarative_base
+from models import db, User, User_Favorited_Recipes
 from datetime import datetime
 from sqlalchemy import exc
 
 app = Flask(__name__)
+app.run(debug=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Plate_Doctor.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -42,7 +44,16 @@ def homepage(username=None):
             val = request.form["recipe"] 
             return redirect(url_for("recipes", value = val))
         else:
-            return render_template("homepage.html")
+            favorited_recipes = []
+            user = User.query.all()
+            favorited_recipe = User_Favorited_Recipes.query.all()
+            for x in user:
+                if x.username == session["username"]:
+                    user_id = x.id
+                    for y in favorited_recipe:
+                        if y.user_id == user_id:
+                            favorited_recipes.append(y.recipe_title)
+            return render_template("homepage.html", favorited_recipes = favorited_recipes)
 
 @app.route("/recipe/<value>", methods =["GET", "POST"])
 def recipes(value=None):
@@ -65,6 +76,23 @@ def recipe_name(recipe=None):
         recipe_uni = urllib.parse.unquote(recipe)
         r = showRecipe(recipe_uni)
         return render_template("recipe_name.html", list = r)
+
+@app.route("/recipe_name/liked_recipe/<recipe_name>", methods =["GET", "POST"])
+def like_recipe(recipe_name=None):
+    recipe_list = showRecipe(recipe_name)
+    recipe_name = recipe_list[1]
+    recipe_ingredients = recipe_list[3]
+    recipe_instructions = recipe_list[5]
+    liked_recipe = User_Favorited_Recipes(recipe_name, recipe_ingredients, recipe_instructions)
+    db.session.add(liked_recipe)
+    db.session.commit()
+    result = User.query.all()
+    for r in result:
+        if r.username == session["username"]:
+            user_id = r.id
+            liked_recipe.user_id = user_id
+            db.session.commit()
+    return render_template("liked_recipe.html", recipe_name = recipe_name)
 
 @app.route("/registration/", methods=["GET", "POST"])
 def registration():
@@ -109,12 +137,18 @@ def showRecipe(recipe):
     with open("recipes_raw_nosource_epi.json") as f:
         data = json.load(f)
     recipe_name_list = []
+    recipe_ing_fixed = []
     for key, value in data.items():
         if recipe.lower() in value['title'].lower():
             recipe_name_list.append("Recipe Name")
             recipe_name_list.append(value['title'])
             recipe_name_list.append("Ingredients")
-            recipe_name_list.append(value['ingredients'])
+            recipe_ingredients = value['ingredients']
+            for x in recipe_ingredients:
+                recipe_ing_fixed.append(x)
+                recipe_ing_fixed.append(' ')
+            ing_string = ''.join(recipe_ing_fixed)
+            recipe_name_list.append(ing_string)
             recipe_name_list.append("Instructions")
             recipe_name_list.append(value['instructions'])
     return recipe_name_list

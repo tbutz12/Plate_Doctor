@@ -1,24 +1,36 @@
 <h1>Recipe Page</h1>
 <br>
-<a href='{{url_for("homepage", username = username)}}'>Click here to return to homepage!</a>
+<a href='{{url_for("homepage", username = session["username"])}}'>Click here to return to homepage!</a>
 {% extends "base.html" %}
 
-{% block title %}Recipe! - {{ super() }}{% endblock %}
+{% block title %}Recipe!{{ super() }}{% endblock %}
 
 {% block body %}
-	<h3>List of Recipes:</h3>
-<ul>
-	{% for e in list %}
-	<div style="font-size:18px">
-		<p>
-			<form action = "" method ="post">
-                <input type = "hidden" name = "viewRecipe" value = "{{e}}">
-                <button name = "{{e}}" style="background-color:black;color:white;width:400px;
-                height:40px;" >{{e}}</button>
-            </form>
-		</p>
-	</div>
-	<br>
-		{% endfor %}
-</ul>
+<style>
+	.flex-parent {
+		display: flex;
+	  }
+	  
+	  .jc-center {
+		justify-content: center;
+	  }
+</style>
+<br>
+<h3>List of Recipes:</h3>
+<div class="flex-parent jc-center">
+	<ul>
+		{% for e in list %}
+		<div style="font-size:18px">
+			<p>
+				<form action = "" method ="post">
+					<input type = "hidden" name = "viewRecipe" value = "{{e}}">
+					<button name = "{{e}}" class="block magenta margin-auto" style="background-color:black;color:white;width:400px;
+					height:40px;" >{{e}}</button>
+				</form>
+			</p>
+		</div>
+		<br>
+			{% endfor %}
+	</ul>
+</div>
 {% endblock %}

@@ -1,28 +1,10 @@
 <h1>Recipe</h1>
 <br>
-<a href='{{url_for("homepage", username = username)}}'>Click here to return to homepage!</a>
+<a href='{{url_for("homepage", username = session["username"])}}'>Click here to return to homepage!</a>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<style>
-	.fa {
-	  font-size: 50px;
-	  cursor: pointer;
-	  user-select: none;
-	  margin: auto;
-	  width: 60%;
-	}
-	.fa:hover {
-	  color: darkblue;
-	}
-	.center {
-		margin: auto;
-		width: 60%;
-		border: 3px solid #000000;
-		padding: 10px;
-	  }
-</style>
 {% extends "base.html" %}
 
-{% block title %}Recipe! - {{ super() }}{% endblock %}
+{% block title %}Recipe!{{ super() }}{% endblock %}
 
 {% block body %}
 	<h3>Recipe:</h3>
@@ -34,17 +16,47 @@
 	<br>
 		{% endfor %}
 </ul>
-
-<div class="center">
+<style>
+	.fa {
+	  font-size: 50px;
+	  cursor: pointer;
+	  user-select: none;
+	  margin: auto;
+	  width: 60%;
+	}
+	.fa:hover {
+	  color: darkblue;
+	}
+	.flex-parent {
+		display: flex;
+	  }
+	  
+	.jc-center {
+		justify-content: center;
+	}
+</style>
+<div class="flex-parent jc-center">
 	<form action="" method="post">
-		<input type="hidden" name="like" value="like">
-		<i onclick="myFunction(this)" class="fa fa-thumbs-up"></i>
+		<div class="flex-parent jc-center">
+			<form action = "" method ="post">
+				<input type = "hidden" name = "like" value = "like">
+				<i onclick="myFunction(this)" class="fa fa-thumbs-up"></i><p>Click the thumbs up to like this recipe!</p>
+			</form>
+		</div>
 	</form>
 	<script>
 		function myFunction(x) {
 		x.classList.toggle("fa-thumbs-down");
+		var xhr = new XMLHttpRequest();
+		recipe_list = {{ list|safe }};
+		recipe_name = recipe_list[1];
+		//s = recipe_name.replace(/%20/g, "")
+		url = "liked_recipe/" + recipe_name;
+		//xhr.open("POST", url, true);
+		//xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+		//xhr.send(recipe_name);
+		location.href = url;
 		}
 	</script>
-	<p>Click here to like this recipe!</p>
 </div>
 {% endblock %}
