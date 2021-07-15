@@ -47,14 +47,9 @@
 	<script>
 		function myFunction(x) {
 		x.classList.toggle("fa-thumbs-down");
-		var xhr = new XMLHttpRequest();
 		recipe_list = {{ list|safe }};
 		recipe_name = recipe_list[1];
-		//s = recipe_name.replace(/%20/g, "")
 		url = "liked_recipe/" + recipe_name;
-		//xhr.open("POST", url, true);
-		//xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-		//xhr.send(recipe_name);
 		location.href = url;
 		}
 	</script>

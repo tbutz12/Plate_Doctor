@@ -41,6 +41,9 @@ def homepage(username=None):
         return redirect(url_for("login"))
     else:
         if request.method == "POST":
+            if not request.form.get("recipe"):
+                favorited_recipe = request.form["favorite_recipe"]
+                return redirect(url_for("homepage_favorite", favorited_recipe = favorited_recipe))
             val = request.form["recipe"] 
             return redirect(url_for("recipes", value = val))
         else:
@@ -53,7 +56,13 @@ def homepage(username=None):
                     for y in favorited_recipe:
                         if y.user_id == user_id:
                             favorited_recipes.append(y.recipe_title)
-            return render_template("homepage.html", favorited_recipes = favorited_recipes)
+                    return render_template("homepage.html", favorited_recipes = favorited_recipes)
+            return render_template("homepage.html")
+
+@app.route("/homepage/liked_recipe/<favorited_recipe>", methods=["GET", "POST"])
+def homepage_favorite(favorited_recipe=None):
+    r = showRecipe(favorited_recipe)
+    return render_template("homepage_liked_recipe.html", favorited_recipe = r)
 
 @app.route("/recipe/<value>", methods =["GET", "POST"])
 def recipes(value=None):

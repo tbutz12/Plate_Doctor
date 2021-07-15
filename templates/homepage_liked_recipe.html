@@ -1,0 +1,19 @@
+<h1>Recipe</h1>
+<br>
+<a href='{{url_for("homepage", username = session["username"])}}'>Click here to return to homepage!</a>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+{% extends "base.html" %}
+
+{% block title %}Recipe!{{ super() }}{% endblock %}
+
+{% block body %}
+	<h3>Recipe:</h3>
+<ul>
+	{% for e in favorited_recipe %}
+	<div style="font-size:18px">
+		<p>{{e}}</p>
+	</div>
+	<br>
+		{% endfor %}
+</ul>
+{% endblock %}
