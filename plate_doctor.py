@@ -72,6 +72,7 @@ def recipes(value=None):
         if request.method == "POST":
             recipe_name = request.form["viewRecipe"] 
             return redirect(url_for("recipe_name", recipe = recipe_name))
+        recipe_list.clear()
         r = findRecipe(value)
         return render_template("recipe.html", list = r)
 
