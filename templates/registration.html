@@ -3,15 +3,32 @@
 {% block title %}Register! - {{ super() }}{% endblock %}
 
 {% block body %}
-<h2>Registration Page!</h2><br>
+<div style="text-align: center">
+	<h1>Registration Page!</h1><br>
 		<form action="" method="post">
-			Username:  <input type="text" name="user" />
-			<br />
-			Password:  <input type="text" name="pass" />
-			<br />
-			<br>
-			<input type="submit" value="submit" />
+			<dl>
+				Username:<input type="text" name="username" size="30" value="{{ request.form.username }}">
+				<br />
+				Password:<input type="password" name="password" size="30">
+				<br />
+				Password <small>(repeat)</small>:<input type="password" name="password2" size="30">
+			</dl>
+			<input type="submit" class="roundbutton" value="Submit" />
 		</form>
-		<br>
 		<a href='{{url_for("login")}}'>Click here to return to return to login!</a>
+		
+	<!-- define a flash block that may be replaced elsewhere -->
+	{% block flashes %}
+		<!-- If any flash messages, show them -->
+		{% with flashes = get_flashed_messages() %}
+			{% if flashes %}
+				{% for message in flashes %}
+					<p>{{ message }}
+				{% endfor %}
+			{% else %}
+				<!-- add couple new lines just for spacing, there's definitely a better way to organize -->
+			{% endif %}
+		{% endwith %}
+	{% endblock %}
+</div>
 {% endblock %}

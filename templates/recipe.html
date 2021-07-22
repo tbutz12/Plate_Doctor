@@ -1,3 +1,5 @@
+<div style="text-align: center">
+
 <h1>Recipe Page</h1>
 <br>
 <a href='{{url_for("homepage", username = session["username"])}}'>Click here to return to homepage!</a>
@@ -30,7 +32,8 @@
 			</p>
 		</div>
 		<br>
-			{% endfor %}
+		{% endfor %}
 	</ul>
 </div>
 {% endblock %}
+</div>

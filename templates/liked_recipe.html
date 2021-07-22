@@ -1,5 +1,9 @@
+{% extends "base.html" %}
+
+{% block body %}
 <h1>Recipe Favorited!</h1>
 <br>
 <a href='{{url_for("homepage", username = session["username"])}}'>Click here to return to homepage!</a>
 <h3>You liked this recipe!</h3>
 <p>{{recipe_name}}</p>
+{% endblock %}

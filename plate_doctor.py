@@ -1,6 +1,6 @@
 import json, urllib.parse
 from flask import Flask, request, abort, url_for, redirect, session, render_template, flash
-from sqlalchemy.ext.declarative.api import declarative_base
+#from sqlalchemy.ext.declarative.api import declarative_base
 from models import db, User, User_Favorited_Recipes
 from datetime import datetime
 from sqlalchemy import exc
@@ -12,8 +12,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
+#list of special characters that are not allowed in usernames
+special_chars = ["!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "+", "=", "[", "]", "{", "}", "|", ":", ";", "'", '"', ",", "<", ".", ">", "/", "?", "~", "`", " "]
+
 with app.app_context():
-    db.create_all()
+	#drop all pre-existing tables
+	db.drop_all()
+	db.create_all()
 
 users = {}
 recipe_list = []
@@ -24,16 +29,34 @@ def default():
 
 @app.route("/login/", methods=["GET", "POST"])
 def login():
-    result = User.query.all()
-    if request.method == "POST":
-        for r in result:
-            if r.username == request.form["user"] and r.password == request.form["pass"]:
-                session["username"] = r.username
-                userName = r.username
-                if(userName not in users):
-                    users[userName] = r.password
-                return redirect(url_for("homepage", username=r.username)) 
-    return render_template("login.html")
+	result = User.query.all()
+	if request.method == "POST":
+		for r in result:
+			if r.username == request.form["user"]: 
+				if r.password == request.form["pass"]:
+					session["username"] = r.username
+					userName = r.username
+					if(userName not in users):
+						users[userName] = r.password
+					return redirect(url_for("homepage", username=r.username)) 
+				else: 
+					flash("Invalid Password, please try again!")
+					#return redirect to ensure post requests not made in succession
+					return redirect(url_for("login"))
+					
+		#check if any results from query
+		if len(request.form["user"]) == 0:
+			#if here, no username was entered
+			flash("You must enter a username!")
+		else:
+			#if here, no matching usernames were found
+			flash("Invalid username, please try again!")
+		
+		#return redirect to ensure post requests not made in succession
+		return redirect(url_for("login"))
+	
+		
+	return render_template("login.html")
 
 @app.route("/homepage/<username>", methods=["GET", "POST"])
 def homepage(username=None):
@@ -104,34 +127,55 @@ def like_recipe(recipe_name=None):
             db.session.commit()
     return render_template("liked_recipe.html", recipe_name = recipe_name)
 
-@app.route("/registration/", methods=["GET", "POST"])
-def registration():
-    if request.method == "POST":
-        userName = request.form["user"]
-        qUser = User.query.all()
-        for u in qUser:
-            users[u.username] = u.password
-        if(userName in users):
-            return redirect(url_for("registration"))
-        users[userName] = request.form["pass"]
-        if(len(userName) == 0):
-            return render_template("registration.html")
-        passW = request.form["pass"]
-        if(len(passW) == 0):
-            return render_template("registration.html")
-        q = User(userName, passW)
-        db.session.add(q)
-        db.session.commit()
-        return redirect(url_for("login"))
-    return render_template("registration.html")
 
+#routing for register page
+@app.route('/registration/', methods=['GET', 'POST'])
+def registration():
+	"""Registers the user."""
+
+	if request.method == 'POST':
+		if not request.form['username']: #no username entered
+			flash('You have to enter a username')
+		elif len(request.form['username']) > 20: #make sure username is within valid character count
+			flash('Your username has to be less than 20 characters!')
+		elif any(letter in request.form['username'] for letter in special_chars): #checks for special characters
+			flash('Your username contains invalid special characters!')
+		elif not request.form['password']: #no password entered
+			flash('You have to enter a password')
+		elif len(request.form['password']) > 20: #make sure password is within valid character count
+			flash('Your password has to be less than 20 characters!')
+		elif any(letter in request.form['password'] for letter in " "): #checks for spaces
+			flash('Your password contains space(s)!')
+		elif request.form['password'] != request.form['password2']: #passwords do not match
+			flash('The two passwords do not match')
+		elif get_user_id(request.form['username']) is not None: #username already exists
+			flash('The username is already taken')
+		else:
+			#add the new user to the db
+			db.session.add(User(request.form['username'], request.form['password'])) #add new user to db
+			db.session.commit() #commit new user to db
+			flash('You were successfully registered and can login now') #confirm user successfully registered
+			return redirect(url_for('login'))
+			
+		#return redirect to ensure post requests not made in succession
+		return redirect(url_for("registration"))
+			
+	return render_template("registration.html")
+	
+#helper method from example code to check if username already exists
+def get_user_id(username):
+	"""Convenience method to look up the id for a username."""
+	rv = User.query.filter_by(username=username).first()
+	return rv.user_id if rv else None
+	
 @app.route("/logout/")
 def logout():
-    if "username" in session:
-        session.clear()
-        return render_template("logoutPage.html")
-    else:
-        return redirect(url_for("login"))
+	if "username" in session:
+		session.clear()
+		flash('You have been logged out!')
+		return redirect(url_for("login"))
+	else:
+		return redirect(url_for("login"))
 
 def findRecipe(val):
     data = []
