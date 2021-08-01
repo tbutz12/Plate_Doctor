@@ -16,4 +16,43 @@
 	<br>
 		{% endfor %}
 </ul>
+
+<style>
+	.fa {
+	  font-size: 50px;
+	  cursor: pointer;
+	  user-select: none;
+	  margin: auto;
+	  width: 60%;
+	}
+	.fa:hover {
+	  color: darkblue;
+	}
+	.flex-parent {
+		display: flex;
+	  }
+	  
+	.jc-center {
+		justify-content: center;
+	}
+</style>
+<div class="flex-parent jc-center">
+	<form action="" method="post">
+		<div class="flex-parent jc-center">
+			<form action = "" method ="post">
+				<input type = "hidden" name = "like" value = "like">
+				<i id="thumb" onclick="myFunction(this)" class="fa fa-thumbs-down"></i><p>Click the thumbs down to un-favorite this recipe!</p>
+			</form>
+		</div>
+	</form>
+	<script>
+		function myFunction(x) {
+		//x.classList.toggle("fa-thumbs-up");
+		//recipe_name = favorited_recipe[1];//document.getElementById("thumb").value;
+		console.log("returned name is ", name);
+		url = "un_like_recipe/" + name;
+		location.href = url;
+		}
+	</script>
+</div>
 {% endblock %}

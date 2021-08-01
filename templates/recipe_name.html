@@ -9,12 +9,14 @@
 {% block body %}
 	<h3>Recipe:</h3>
 <ul>
+	<!-- FOR LOOP FOR DISPLAYING RECIPE INFO -->
 	{% for e in list %}
-	<div style="font-size:18px">
-		<p>{{e}}</p>
-	</div>
-	<br>
-		{% endfor %}
+		<div style="font-size:18px">
+			<p>{{e}}</p>
+		</div>
+		<br>
+	{% endfor %}
+	<!-- END RECIPE INFO -->
 </ul>
 <style>
 	.fa {
@@ -46,7 +48,7 @@
 	</form>
 	<script>
 		function myFunction(x) {
-		x.classList.toggle("fa-thumbs-down");
+		//x.classList.toggle("fa-thumbs-down");
 		recipe_list = {{ list|safe }};
 		recipe_name = recipe_list[1];
 		url = "liked_recipe/" + recipe_name;
