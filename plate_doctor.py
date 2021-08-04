@@ -1,9 +1,6 @@
 import json, urllib.parse
-from flask import Flask, request, abort, url_for, redirect, session, render_template, flash
-#from sqlalchemy.ext.declarative.api import declarative_base
+from flask import Flask, request, url_for, redirect, session, render_template, flash
 from models import db, User, User_Favorited_Recipes
-from datetime import datetime
-from sqlalchemy import exc
 
 app = Flask(__name__)
 app.run(debug=True)
@@ -158,7 +155,6 @@ def un_like_recipe(recipe_name=None):
 	if session["username"] == None:
 		flash('You must login!')
 		return redirect(url_for('login'))
-		
 	#now know there is a valid user logged in, unfavorite their recipe of choice
 	curr_user = User.query.filter_by(username=session["username"]).first()
 	removed_recipe = User_Favorited_Recipes.query.filter_by(recipe_title=recipe_name, user_id=curr_user.id).first()
@@ -166,16 +162,12 @@ def un_like_recipe(recipe_name=None):
 	db.session.delete(removed_recipe)
 	#commit changes
 	db.session.commit()
-	return render_template("un_like_recipe.html", removed_recipe = removed_recipe)
-
-	#redirect to unlike recipe, show removed recipe
-	#return redirect(url_for("homepage"), username =session["username"] )
+	return render_template("un_like_recipe.html", removed_recipe = recipe_name)
 
 #routing for register page
 @app.route('/registration/', methods=['GET', 'POST'])
 def registration():
 	"""Registers the user."""
-
 	if request.method == 'POST':
 		if not request.form['username']: #no username entered
 			flash('You have to enter a username')
@@ -220,12 +212,14 @@ def logout():
 	else:
 		return redirect(url_for("login"))
 
+
 def findRecipeName(val):
-    data = []
-    with open("recipes_raw_nosource_epi.json") as f:
-        data = json.load(f)
+    with open("data.json") as f:
+        data = json.loads(f.read())
     for key, value in data.items():
         if val.lower() in value['title'].lower():
+            if value['title'] in recipe_list:
+                continue
             recipe_list.append(value['title'])
     return recipe_list
 	
@@ -267,13 +261,15 @@ def findRecipeIngredients(ingredients):
 
 
 def showRecipe(recipe):
-    data = []
-    with open("recipes_raw_nosource_epi.json") as f:
-        data = json.load(f)
+    with open("data.json") as f:
+        data = json.loads(f.read())
     recipe_name_list = []
     recipe_ing_fixed = []
+    recipe_instr_fixed = []
     for key, value in data.items():
         if recipe.lower() in value['title'].lower():
+            if value['title'] in recipe_name_list:
+                continue
             recipe_name_list.append("Recipe Name")
             recipe_name_list.append(value['title'])
             recipe_name_list.append("Ingredients")
@@ -284,7 +280,12 @@ def showRecipe(recipe):
             ing_string = ''.join(recipe_ing_fixed)
             recipe_name_list.append(ing_string)
             recipe_name_list.append("Instructions")
-            recipe_name_list.append(value['instructions'])
+            recipe_instructions = value['instructions']
+            for i in recipe_instructions:
+                recipe_instr_fixed.append(i)
+                recipe_instr_fixed.append(' ')
+            instr_string = ''.join(recipe_instr_fixed)
+            recipe_name_list.append(instr_string)
     return recipe_name_list
 	
 
