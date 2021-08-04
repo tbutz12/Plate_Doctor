@@ -11,8 +11,27 @@
 <ul>
 	<!-- FOR LOOP FOR DISPLAYING RECIPE INFO -->
 	{% for e in list %}
-		<div style="font-size:18px">
-			<p>{{e}}</p>
+			{% if e in list[1] %}
+			<div style="font-size:18px">
+				<p>{{e}}</p>
+
+			{% endif %}
+
+			{% if e in list[2] %}
+			<div style="font-size:30px">
+				<p>{{e}}</p>
+
+			{% endif %}
+
+			{% if e in list[3] %}
+			<div style="font-size:20px">
+				<ul>
+					<p>{{e}}</p>
+				</ul>
+
+				
+
+			{% endif %}
 		</div>
 		<br>
 	{% endfor %}

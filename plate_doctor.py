@@ -85,7 +85,8 @@ def homepage(username=None):
 @app.route("/homepage/liked_recipe/<favorited_recipe>", methods=["GET", "POST"])
 def homepage_favorite(favorited_recipe=None):
     r = showRecipe(favorited_recipe)
-    return render_template("homepage_liked_recipe.html", favorited_recipe = r)
+    recipe_name = r[1]
+    return render_template("homepage_liked_recipe.html", favorited_recipe = r, recipe_name = recipe_name)
 
 @app.route("/recipe/<value>", methods =["GET", "POST"])
 def recipes(value=None):
@@ -127,26 +128,25 @@ def like_recipe(recipe_name=None):
             db.session.commit()
     return render_template("liked_recipe.html", recipe_name = recipe_name)
 	
-@app.route("/recipe_name/un_like_recipe/<recipe_name>", methods =["GET", "POST"])
+@app.route("/recipe_name/liked_recipe/un_like_recipe/<recipe_name>", methods =["GET", "POST"])
 def un_like_recipe(recipe_name=None):
 	#make sure the user is valid
 	if session["username"] == None:
 		flash('You must login!')
-		redirect(url_for('login'))
+		return redirect(url_for('login'))
 		
 	#now know there is a valid user logged in, unfavorite their recipe of choice
 	curr_user = User.query.filter_by(username=session["username"])
-	removed_recipe = User_Favorited_Recipes.query.filter_by(recipe_title=recipe_name, user_id=curr_user.id)
-	
+	removed_recipe = User_Favorited_Recipes.query.filter_by(recipe_title=recipe_name, user_id=curr_user)
+	print("removed recipeee",removed_recipe)
 	#have the unliked recipe, remove from db
 	User_Favorited_Recipes.remove(removed_recipe)
 	#commit changes
 	db.session.commit()
-	
-	#redirect to homepage
-	return render_template("homepage.html")
+	return render_template("un_like_recipe.html", removed_recipe = removed_recipe)
 
-
+	#redirect to unlike recipe, show removed recipe
+	#return redirect(url_for("homepage"), username =session["username"] )
 
 #routing for register page
 @app.route('/registration/', methods=['GET', 'POST'])
