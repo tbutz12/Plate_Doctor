@@ -60,27 +60,35 @@ def login():
 
 @app.route("/homepage/<username>", methods=["GET", "POST"])
 def homepage(username=None):
-    if not username:
-        return redirect(url_for("login"))
-    else:
-        if request.method == "POST":
-            if not request.form.get("recipe"):
-                favorited_recipe = request.form["favorite_recipe"]
-                return redirect(url_for("homepage_favorite", favorited_recipe = favorited_recipe))
-            val = request.form["recipe"] 
-            return redirect(url_for("recipes", value = val))
-        else:
-            favorited_recipes = []
-            user = User.query.all()
-            favorited_recipe = User_Favorited_Recipes.query.all()
-            for x in user:
-                if x.username == session["username"]:
-                    user_id = x.id
-                    for y in favorited_recipe:
-                        if y.user_id == user_id:
-                            favorited_recipes.append(y.recipe_title)
-                    return render_template("homepage.html", favorited_recipes = favorited_recipes)
-            return render_template("homepage.html")
+	if not username:
+		return redirect(url_for("login"))
+	else:
+		if request.method == "POST":
+			if not request.form.get("recipe") and not request.form.get("ingredients"):
+				favorited_recipe = request.form["favorite_recipe"]
+				return redirect(url_for("homepage_favorite", favorited_recipe = favorited_recipe))
+				
+			recipe_name = request.form["recipe"] 
+			if not recipe_name:
+				recipe_name = "search"
+			
+			ingredients = request.form["ingredients"] #split ingredients by commas 
+			if not ingredients:
+				ingredients = "noIngred"
+								
+			return redirect(url_for("recipes", value = recipe_name, ingredients = ingredients))
+		else:
+			favorited_recipes = []
+			user = User.query.all()
+			favorited_recipe = User_Favorited_Recipes.query.all()
+			for x in user:
+				if x.username == session["username"]:
+					user_id = x.id
+					for y in favorited_recipe:
+						if y.user_id == user_id:
+							favorited_recipes.append(y.recipe_title)
+						return render_template("homepage.html", favorited_recipes = favorited_recipes)
+			return render_template("homepage.html")
 
 @app.route("/homepage/liked_recipe/<favorited_recipe>", methods=["GET", "POST"])
 def homepage_favorite(favorited_recipe=None):
@@ -88,17 +96,33 @@ def homepage_favorite(favorited_recipe=None):
     recipe_name = r[1]
     return render_template("homepage_liked_recipe.html", favorited_recipe = r, recipe_name = recipe_name)
 
-@app.route("/recipe/<value>", methods =["GET", "POST"])
-def recipes(value=None):
-    if not value:
-        return render_template("homepage.html", username = session["username"])
-    else:
-        if request.method == "POST":
-            recipe_name = request.form["viewRecipe"] 
-            return redirect(url_for("recipe_name", recipe = recipe_name))
-        recipe_list.clear()
-        r = findRecipe(value)
-        return render_template("recipe.html", list = r)
+@app.route("/recipe/<value>/<ingredients>", methods =["GET", "POST"])
+def recipes(value=None, ingredients=None):
+
+	if value == "search":
+		value = ""
+	if ingredients == "noIngred":
+		ingredients = ""
+			
+	if not value and not ingredients:
+		return render_template("homepage.html", username = session["username"])
+	else:
+		if request.method == "POST":
+			recipe_name = request.form["viewRecipe"] 
+			return redirect(url_for("recipe_name", recipe = recipe_name))
+		recipe_list.clear()
+		#declare r here
+		r = []
+		#need to check if user searching by recipe name, ingredients, or both
+		if value and ingredients: #both name and ingredients
+			#add search both
+			print("value: ", value, " ingredients: ", ingredients)
+		elif value: #only name
+			r = findRecipeName(value)
+		elif ingredients:
+			r = findRecipeIngredients(ingredients)
+		
+		return render_template("recipe.html", list = r)
 
 @app.route("/recipe_name/<recipe>", methods =["GET", "POST"])
 def recipe_name(recipe=None):
@@ -137,9 +161,7 @@ def un_like_recipe(recipe_name=None):
 		
 	#now know there is a valid user logged in, unfavorite their recipe of choice
 	curr_user = User.query.filter_by(username=session["username"]).first()
-	#print("removed name ",recipe_name)
 	removed_recipe = User_Favorited_Recipes.query.filter_by(recipe_title=recipe_name, user_id=curr_user.id).first()
-	#print("removed recipeee ",removed_recipe)
 	#have the unliked recipe, remove from db
 	db.session.delete(removed_recipe)
 	#commit changes
@@ -198,7 +220,7 @@ def logout():
 	else:
 		return redirect(url_for("login"))
 
-def findRecipe(val):
+def findRecipeName(val):
     data = []
     with open("recipes_raw_nosource_epi.json") as f:
         data = json.load(f)
@@ -206,6 +228,43 @@ def findRecipe(val):
         if val.lower() in value['title'].lower():
             recipe_list.append(value['title'])
     return recipe_list
+	
+def findRecipeIngredients(ingredients):
+	data = []
+	ingredient_array = ingredients.split(",")
+	
+	with open("recipes_raw_nosource_epi.json") as f:
+		data = json.load(f)
+	#using a bool to check if valid recipe so far
+	valid = True
+	#loop through every entry in the JSON file
+	for key, value in data.items():
+		#loop through every ingredient in the list
+		for curr_search in ingredient_array:
+			#check against every ingredient in current ingredient array
+			#grab length of ingredient list
+			num_ingredients = len(value['ingredients'])
+			curr_count = 1
+			for curr_check in value['ingredients']:
+				#if an ingredient is not found in the current recipe examined, flag it as invalid and break
+				if curr_search.lower().strip() not in curr_check.lower() and curr_count == num_ingredients:
+					valid = False
+					break
+				elif curr_search.lower().strip() in curr_check.lower():
+					break #ingredient found, break
+				curr_count = curr_count + 1
+					
+		#check if ingredients list is empty
+		if not value['ingredients']:
+			valid = False
+		#check this recipe is a valid result, if so, add it to the list
+		if valid:
+			recipe_list.append(value['title'])
+		#reset valid var
+		valid = True
+	return recipe_list
+	
+
 
 def showRecipe(recipe):
     data = []
@@ -227,6 +286,7 @@ def showRecipe(recipe):
             recipe_name_list.append("Instructions")
             recipe_name_list.append(value['instructions'])
     return recipe_name_list
+	
 
 app.secret_key = "asdf;lkj"
             
