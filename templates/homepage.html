@@ -6,6 +6,21 @@
 <h1>Recipe Homepage!</h1>
 <a href='{{url_for("logout")}}'>Click here to log out!</a>
 <br>
+<!-- define a flash block that may be replaced elsewhere -->
+{% block flashes %}
+<div style="text-align: center">
+	<!-- If any flash messages, show them -->
+	{% with flashes = get_flashed_messages() %}
+		{% if flashes %}
+			{% for message in flashes %}
+				<p>{{ message }}
+			{% endfor %}
+		{% else %}
+			<!-- add couple new lines just for spacing, there's definitely a better way to organize -->
+		{% endif %}
+	{% endwith %}
+</div>
+{% endblock %}
 <form action="" method="post">
 	<br>
 	<br>
@@ -85,6 +100,5 @@
 			{% endfor %}
 	</ul>
 </div>
-<br>
 </div>
 {% endblock %}

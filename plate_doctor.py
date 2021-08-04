@@ -61,15 +61,31 @@ def homepage(username=None):
 		return redirect(url_for("login"))
 	else:
 		if request.method == "POST":
-			if not request.form.get("recipe") and not request.form.get("ingredients"):
-				favorited_recipe = request.form["favorite_recipe"]
+			if not request.form.get("recipe") and not request.form.get("ingredients"): #POST issued, but neither recipe name nor ingredients populated
+				if not request.form.get("favorite_recipe"): #the user did not select a favorited recipe either - all fields blank
+					flash("Please populate one or more fields!")
+					user = User.query.filter_by(username=session["username"]).first() #grab user
+					favorites = User_Favorited_Recipes.query.filter_by(user_id=user.id).all() #grab user favorites (if they exist)
+					if favorites:
+						favorited_recipes = []
+						for y in favorites:
+							favorited_recipes.append(y.recipe_title)
+						return render_template("homepage.html", favorited_recipes = favorited_recipes)
+					else:
+						return render_template("homepage.html")
+					#return render_template("homepage.html")
+				favorited_recipe = request.form.get("favorite_recipe")
 				return redirect(url_for("homepage_favorite", favorited_recipe = favorited_recipe))
-				
-			recipe_name = request.form["recipe"] 
+			
+			#grab recipe name input from form
+			recipe_name = request.form["recipe"]
+			#if user did not enter a name, use a temp value for the address bar
 			if not recipe_name:
 				recipe_name = "search"
 			
+			#grab ingredients input from form
 			ingredients = request.form["ingredients"] #split ingredients by commas 
+			#if user did not enter ingredients, use a temp value for the address bar
 			if not ingredients:
 				ingredients = "noIngred"
 								
@@ -96,6 +112,7 @@ def homepage_favorite(favorited_recipe=None):
 @app.route("/recipe/<value>/<ingredients>", methods =["GET", "POST"])
 def recipes(value=None, ingredients=None):
 
+	#clear any temp values
 	if value == "search":
 		value = ""
 	if ingredients == "noIngred":
@@ -112,8 +129,8 @@ def recipes(value=None, ingredients=None):
 		r = []
 		#need to check if user searching by recipe name, ingredients, or both
 		if value and ingredients: #both name and ingredients
-			#add search both
-			print("value: ", value, " ingredients: ", ingredients)
+			#search both
+			r = findByBoth(value, ingredients)
 		elif value: #only name
 			r = findRecipeName(value)
 		elif ingredients:
@@ -134,20 +151,27 @@ def recipe_name(recipe=None):
 
 @app.route("/recipe_name/liked_recipe/<recipe_name>", methods =["GET", "POST"])
 def like_recipe(recipe_name=None):
-    recipe_list = showRecipe(recipe_name)
-    recipe_name = recipe_list[1].strip()
-    recipe_ingredients = recipe_list[3]
-    recipe_instructions = recipe_list[5]
-    liked_recipe = User_Favorited_Recipes(recipe_name, recipe_ingredients, recipe_instructions)
-    db.session.add(liked_recipe)
-    db.session.commit()
-    result = User.query.all()
-    for r in result:
-        if r.username == session["username"]:
-            user_id = r.id
-            liked_recipe.user_id = user_id
-            db.session.commit()
-    return render_template("liked_recipe.html", recipe_name = recipe_name)
+	recipe_list = showRecipe(recipe_name)
+	recipe_name = recipe_list[1].strip()
+	recipe_ingredients = str(recipe_list[3])
+	recipe_instructions = str(recipe_list[5])	
+	
+	user = User.query.filter_by(username=session["username"]).first() #grab user
+	check_recipe = User_Favorited_Recipes.query.filter_by(recipe_title=recipe_name, user_id=user.id).first()
+	if check_recipe:
+		flash("You already have this as a favorite!")
+		return redirect(url_for("homepage", username=session["username"]))
+	
+	liked_recipe = User_Favorited_Recipes(recipe_name, recipe_ingredients, recipe_instructions)	
+	db.session.add(liked_recipe)
+	db.session.commit()
+	result = User.query.all()
+	for r in result:
+		if r.username == session["username"]:
+			user_id = r.id
+			liked_recipe.user_id = user_id
+			db.session.commit()
+	return render_template("liked_recipe.html", recipe_name = recipe_name)
 	
 @app.route("/homepage/liked_recipe/un_like_recipe/<recipe_name>", methods =["GET", "POST"])
 def un_like_recipe(recipe_name=None):
@@ -157,9 +181,10 @@ def un_like_recipe(recipe_name=None):
 		return redirect(url_for('login'))
 	#now know there is a valid user logged in, unfavorite their recipe of choice
 	curr_user = User.query.filter_by(username=session["username"]).first()
-	removed_recipe = User_Favorited_Recipes.query.filter_by(recipe_title=recipe_name, user_id=curr_user.id).first()
+	removed_recipe = User_Favorited_Recipes.query.filter_by(recipe_title=recipe_name, user_id=curr_user.id).all()
 	#have the unliked recipe, remove from db
-	db.session.delete(removed_recipe)
+	for curr in removed_recipe:
+		db.session.delete(curr)
 	#commit changes
 	db.session.commit()
 	return render_template("un_like_recipe.html", removed_recipe = recipe_name)
@@ -227,7 +252,7 @@ def findRecipeIngredients(ingredients):
 	data = []
 	ingredient_array = ingredients.split(",")
 	
-	with open("recipes_raw_nosource_epi.json") as f:
+	with open("data.json") as f:
 		data = json.load(f)
 	#using a bool to check if valid recipe so far
 	valid = True
@@ -259,6 +284,45 @@ def findRecipeIngredients(ingredients):
 	return recipe_list
 	
 
+def findByBoth(name, ingredients):
+	ingredient_array = ingredients.split(",")
+	#using a bool to check if ingredients match recipe
+	valid = True
+	with open("data.json") as f:
+		data = json.loads(f.read())
+	for key, value in data.items():
+		if name.lower() in value['title'].lower(): #check if entered recipe name matches current recipe 
+			if value['title'] in recipe_list:
+				continue
+
+			#check ingredients since name matches
+			#loop through every ingredient in the list
+			for curr_search in ingredient_array:
+				#check against every ingredient in current ingredient array
+				#grab length of ingredient list
+				num_ingredients = len(value['ingredients'])
+				curr_count = 1
+				for curr_check in value['ingredients']:
+					#if an ingredient is not found in the current recipe examined, flag it as invalid and break
+					if curr_search.lower().strip() not in curr_check.lower() and curr_count == num_ingredients:
+						valid = False
+						break
+					elif curr_search.lower().strip() in curr_check.lower():
+						break #ingredient found, break
+					curr_count = curr_count + 1
+						
+			#check if ingredients list is empty
+			if not value['ingredients']:
+				valid = False
+			#check this recipe is a valid result, if so, add it to the list
+			if valid:
+				recipe_list.append(value['title'])
+			#reset valid var
+			valid = True
+				
+	return recipe_list
+	
+
 
 def showRecipe(recipe):
     with open("data.json") as f:
@@ -273,19 +337,9 @@ def showRecipe(recipe):
             recipe_name_list.append("Recipe Name")
             recipe_name_list.append(value['title'])
             recipe_name_list.append("Ingredients")
-            recipe_ingredients = value['ingredients']
-            for x in recipe_ingredients:
-                recipe_ing_fixed.append(x)
-                recipe_ing_fixed.append(' ')
-            ing_string = ''.join(recipe_ing_fixed)
-            recipe_name_list.append(ing_string)
+            recipe_name_list.append(value['ingredients'])
             recipe_name_list.append("Instructions")
-            recipe_instructions = value['instructions']
-            for i in recipe_instructions:
-                recipe_instr_fixed.append(i)
-                recipe_instr_fixed.append(' ')
-            instr_string = ''.join(recipe_instr_fixed)
-            recipe_name_list.append(instr_string)
+            recipe_name_list.append(value['instructions'])
     return recipe_name_list
 	
 

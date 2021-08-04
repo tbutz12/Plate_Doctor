@@ -12,7 +12,26 @@
 	<!-- FOR LOOP FOR DISPLAYING RECIPE INFO -->
 	{% for e in list %}
 		<div style="font-size:18px">
+		{% if loop.index == 4 %}
+			<ul>
+				{% for item in e %}
+					<li>{{ item }}</li>
+				{% endfor %}
+			</ul>
+		{% elif loop.index == 6 %}
+			<ol>
+				{% for item in e %}
+					<li>{{ item }}</li>
+				{% endfor %}
+			</ol>
+		{% elif loop.index == 1 or loop.index == 3 or loop.index == 5 %}
+			<u><h3>{{e}}</h3></u>
+		{% elif loop.index == 2 %}
+			<b>{{e}}</b>
+		{% else %}
 			<p>{{e}}</p>
+		{% endif %}
+			
 		</div>
 		<br>
 	{% endfor %}
