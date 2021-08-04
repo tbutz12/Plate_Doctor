@@ -138,7 +138,7 @@ def un_like_recipe(recipe_name=None):
 	db.session.delete(removed_recipe)
 	#commit changes
 	db.session.commit()
-	return render_template("un_like_recipe.html", removed_recipe = removed_recipe)
+	return render_template("un_like_recipe.html", removed_recipe = recipe_name)
 
 #routing for register page
 @app.route('/registration/', methods=['GET', 'POST'])
