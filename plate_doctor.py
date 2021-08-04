@@ -1,8 +1,6 @@
 import json, urllib.parse
 from flask import Flask, request, url_for, redirect, session, render_template, flash
 from models import db, User, User_Favorited_Recipes
-from datetime import datetime
-from sqlalchemy import exc
 
 app = Flask(__name__)
 app.run(debug=True)
