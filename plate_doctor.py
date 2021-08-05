@@ -1,8 +1,11 @@
 import json, urllib.parse
+from flask_caching import Cache
 from flask import Flask, request, url_for, redirect, session, render_template, flash
 from models import db, User, User_Favorited_Recipes
 
 app = Flask(__name__)
+cache = Cache(config={'CACHE_TYPE': 'simple'})
+cache.init_app(app)
 app.run(debug=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Plate_Doctor.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -25,6 +28,7 @@ def default():
     return redirect(url_for("login"))
 
 @app.route("/login/", methods=["GET", "POST"])
+@cache.cached(timeout=50)
 def login():
 	result = User.query.all()
 	if request.method == "POST":
@@ -51,11 +55,11 @@ def login():
 		
 		#return redirect to ensure post requests not made in succession
 		return redirect(url_for("login"))
-	
 		
 	return render_template("login.html")
 
 @app.route("/homepage/<username>", methods=["GET", "POST"])
+@cache.cached(timeout=50)
 def homepage(username=None):
 	if not username:
 		return redirect(url_for("login"))
@@ -111,7 +115,6 @@ def homepage_favorite(favorited_recipe=None):
 
 @app.route("/recipe/<value>/<ingredients>", methods =["GET", "POST"])
 def recipes(value=None, ingredients=None):
-
 	#clear any temp values
 	if value == "search":
 		value = ""
@@ -191,6 +194,7 @@ def un_like_recipe(recipe_name=None):
 
 #routing for register page
 @app.route('/registration/', methods=['GET', 'POST'])
+@cache.cached(timeout=50)
 def registration():
 	"""Registers the user."""
 	if request.method == 'POST':
@@ -236,7 +240,6 @@ def logout():
 		return redirect(url_for("login"))
 	else:
 		return redirect(url_for("login"))
-
 
 def findRecipeName(val):
     with open("data.json") as f:
