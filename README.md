@@ -2,9 +2,9 @@
 Authors:
 **Tristin, James, Sophie**
 
-##Recipe API with built-in web scraper to scrape recipe data into a JSON file
+## Recipe API with built-in web scraper to scrape recipe data into a JSON file
 
-##Requirements:
+## Requirements:
 ```
 Python 3.8
 Pip3
