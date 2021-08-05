@@ -14,7 +14,12 @@ Pip3
 
 ```
 pip3 install -r requirements.txt
-$env:FLASK_APP = "plate_doctor"
-flask run
+(Windows):
+  $env:FLASK_APP = "plate_doctor"
+  flask run
+(Linux):
+  FLASK_APP=plate_doctor.py flask run
+  export FLASK_APP=plate_doctor
+  flask run
 
 ```
