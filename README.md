@@ -15,14 +15,21 @@ Pip3
 ```
 pip3 install -r requirements.txt
 
-**(Windows):
+```
+
+**Windows:
+```
   $env:FLASK_APP = "plate_doctor"
   flask run
   
-**(Linux):
+```
+**Linux:
+```
   FLASK_APP=plate_doctor.py flask run
   
-**(Mac):
+```
+**Mac:
+```
   export FLASK_APP=plate_doctor
   flask run
 
