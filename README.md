@@ -14,6 +14,7 @@ Pip3
 
 ```
 pip3 install -r requirements.txt
+$env:FLASK_APP = "plate_doctor"
 flask run
 
 ```
