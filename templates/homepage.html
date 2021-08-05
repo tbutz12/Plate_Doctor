@@ -38,6 +38,13 @@
 </form>
 
 <style>
+	.flex-parent {
+		display: flex;
+	  }
+	  
+	  .jc-center {
+		justify-content: center;
+	}
 	button {
  		border-radius: 4px;
   		background-color:black;
@@ -84,21 +91,28 @@
 <br>
 <h3>List of Favorited Recipes:</h3>
 <div class="flex-parent jc-center">
-	<ul>
+	<table>
 		{% for e in favorited_recipes %}
-		<div style="font-size:18px">
-			<p>
-				<form action = "" method ="post">
-					<input type = "hidden" name = "favorite_recipe" value = "{{e}}">
-					<button name = "{{e}}" class="block magenta margin-auto"  >{{e}}</button>
-					<!-- style="background-color:black;color:white;width:400px;
-					height:40px;" -->
-				</form>
-			</p>
-		</div>
-		<br>
-			{% endfor %}
-	</ul>
+			{% if loop.index % 3 == 1 %}
+				<tr>
+			{% endif %}
+			<td>
+			<div style="font-size:18px">
+				<p>
+					<form action = "" method ="post">
+						<input type = "hidden" name = "favorite_recipe" value = "{{e}}">
+						<button name = "{{e}}" class="block magenta margin-auto"  >{{e}}</button>
+						<!-- style="background-color:black;color:white;width:400px; border-radius: 30px;
+						height:60px;" -->
+					</form>
+				</p>
+			</div>
+			</td>
+			{% if loop.index % 3 == 0 %}
+				</tr>
+			{% endif %}
+		{% endfor %}
+	</table>
 </div>
 </div>
 {% endblock %}

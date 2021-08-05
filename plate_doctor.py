@@ -72,7 +72,6 @@ def homepage(username=None):
 						return render_template("homepage.html", favorited_recipes = favorited_recipes)
 					else:
 						return render_template("homepage.html")
-					#return render_template("homepage.html")
 				favorited_recipe = request.form.get("favorite_recipe")
 				return redirect(url_for("homepage_favorite", favorited_recipe = favorited_recipe))
 			
@@ -99,14 +98,15 @@ def homepage(username=None):
 					for y in favorited_recipe:
 						if y.user_id == user_id:
 							favorited_recipes.append(y.recipe_title)
-						return render_template("homepage.html", favorited_recipes = favorited_recipes)
+					return render_template("homepage.html", favorited_recipes = favorited_recipes)
 			return render_template("homepage.html")
 
 @app.route("/homepage/liked_recipe/<favorited_recipe>", methods=["GET", "POST"])
 def homepage_favorite(favorited_recipe=None):
-    r = showRecipe(favorited_recipe)
-    recipe_name = r[1]
-    return render_template("homepage_liked_recipe.html", favorited_recipe = r, recipe_name = recipe_name)
+	r = showRecipe(favorited_recipe)
+	recipe_name = r[1]
+	print(recipe_name)
+	return render_template("homepage_liked_recipe.html", favorited_recipe = r, recipe_name = recipe_name)
 
 @app.route("/recipe/<value>/<ingredients>", methods =["GET", "POST"])
 def recipes(value=None, ingredients=None):
@@ -133,7 +133,6 @@ def recipes(value=None, ingredients=None):
 			r = findRecipeName(value)
 		elif ingredients:
 			r = findRecipeIngredients(ingredients)
-		
 		return render_template("recipe.html", list = r)
 
 @app.route("/recipe_name/<recipe>", methods =["GET", "POST"])
@@ -322,20 +321,21 @@ def findByBoth(name, ingredients):
 
 
 def showRecipe(recipe):
-    with open("data.json") as f:
-        data = json.loads(f.read())
-    recipe_name_list = []
-    for key, value in data.items():
-        if recipe.lower() in value['title'].lower():
-            if value['title'] in recipe_name_list:
-                continue
-            recipe_name_list.append("Recipe Name")
-            recipe_name_list.append(value['title'])
-            recipe_name_list.append("Ingredients")
-            recipe_name_list.append(value['ingredients'])
-            recipe_name_list.append("Instructions")
-            recipe_name_list.append(value['instructions'])
-    return recipe_name_list
+	with open("data.json") as f:
+		data = json.loads(f.read())
+	recipe_name_list = []
+	for key, value in data.items():
+		if recipe.lower() in value['title'].lower():
+			if value['title'] in recipe_name_list:
+				continue
+			recipe_name_list.append("Recipe Name")
+			recipe_name_list.append(value['title'])
+			recipe_name_list.append(value['picture'])
+			recipe_name_list.append("Ingredients")
+			recipe_name_list.append(value['ingredients'])
+			recipe_name_list.append("Instructions")
+			recipe_name_list.append(value['instructions'])
+	return recipe_name_list
 	
 
 app.secret_key = "asdf;lkj"

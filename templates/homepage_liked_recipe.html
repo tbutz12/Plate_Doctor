@@ -1,6 +1,6 @@
 <h1>Recipe</h1>
 <br>
-<a href='{{url_for("homepage", username = session["username"])}}'>Click here to return to homepage!</a>
+<button onclick="location.href = '{{url_for("homepage", username = session["username"])}}';" id="myButton" class="float-left submit-button" >Click here to return to homepage!</button>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 {% extends "base.html" %}
 
@@ -12,22 +12,24 @@
 	<!-- FOR LOOP FOR DISPLAYING RECIPE INFO -->
 	{% for e in favorited_recipe %}
 		<div style="font-size:18px">
-		{% if loop.index == 4 %}
+		{% if loop.index == 5 %}
 			<ul>
 				{% for item in e %}
 					<li>{{ item }}</li>
 				{% endfor %}
 			</ul>
-		{% elif loop.index == 6 %}
+		{% elif loop.index == 7 %}
 			<ol>
 				{% for item in e %}
 					<li>{{ item }}</li>
 				{% endfor %}
 			</ol>
-		{% elif loop.index == 1 or loop.index == 3 or loop.index == 5 %}
+		{% elif loop.index == 1 or loop.index == 4 or loop.index == 6 %}
 			<u><h3>{{e}}</h3></u>
 		{% elif loop.index == 2 %}
 			<b>{{e}}</b>
+		{% elif loop.index == 3 %}
+			<img src="{{e}}" width="300" height="400">
 		{% else %}
 			<p>{{e}}</p>
 		{% endif %}
@@ -58,22 +60,17 @@
 	}
 </style>
 <div class="flex-parent jc-center">
-	<form action="" method="post">
-		<div class="flex-parent jc-center">
-			<form action = "" method ="post">
-				<input type = "hidden" name = "like" value = "like">
-				<i onclick="myFunction(this, '{{recipe_name}}')" class="fa fa-thumbs-down"></i><p>Click the thumbs down to un-favorite this recipe!</p>
-			</form>
-		</div>
+	<form action = "" method ="post">
+		<input type = "hidden" name = "like" value = "like">
+		<i onclick="myFunction(this)" class="fa fa-thumbs-down"></i><p>Click the thumbs down to un-favorite this recipe!</p>
 	</form>
 	<script>
-		function myFunction(x, recipe_name ) {
-			
+		function myFunction(x) {
+		var recipe_name = "{{recipe_name}}"
 		console.log("returned name is ", recipe_name);
 		url = "un_like_recipe/" + recipe_name + " ";
 		location.href = url;
 		}
-
 	</script>
 </div>
 {% endblock %}

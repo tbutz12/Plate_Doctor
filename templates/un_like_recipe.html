@@ -3,7 +3,7 @@
 {% block body %}
 <h1>Recipe Unfavorited!</h1>
 <br>
-<a href='{{url_for("homepage", username = session["username"])}}'>Click here to return to homepage!</a>
+<button onclick="location.href = '{{url_for("homepage", username = session["username"])}}';" id="myButton" class="float-left submit-button" >Click here to return to homepage!</button>
 <h3>You unliked this recipe!</h3>
 
 
