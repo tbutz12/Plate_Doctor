@@ -1,11 +1,8 @@
 import json, urllib.parse
-from flask_caching import Cache
 from flask import Flask, request, url_for, redirect, session, render_template, flash
 from models import db, User, User_Favorited_Recipes
 
 app = Flask(__name__)
-cache = Cache(config={'CACHE_TYPE': 'simple'})
-cache.init_app(app)
 app.run(debug=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Plate_Doctor.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -28,7 +25,6 @@ def default():
     return redirect(url_for("login"))
 
 @app.route("/login/", methods=["GET", "POST"])
-@cache.cached(timeout=50)
 def login():
 	result = User.query.all()
 	if request.method == "POST":
@@ -59,7 +55,6 @@ def login():
 	return render_template("login.html")
 
 @app.route("/homepage/<username>", methods=["GET", "POST"])
-@cache.cached(timeout=50)
 def homepage(username=None):
 	if not username:
 		return redirect(url_for("login"))
@@ -194,7 +189,6 @@ def un_like_recipe(recipe_name=None):
 
 #routing for register page
 @app.route('/registration/', methods=['GET', 'POST'])
-@cache.cached(timeout=50)
 def registration():
 	"""Registers the user."""
 	if request.method == 'POST':
@@ -331,8 +325,6 @@ def showRecipe(recipe):
     with open("data.json") as f:
         data = json.loads(f.read())
     recipe_name_list = []
-    recipe_ing_fixed = []
-    recipe_instr_fixed = []
     for key, value in data.items():
         if recipe.lower() in value['title'].lower():
             if value['title'] in recipe_name_list:
